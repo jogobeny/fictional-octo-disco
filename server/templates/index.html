@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <h1>Flats for sale</h1>
+    <ul>
+        {% for flat in flats %}
+            <h2>{{ flat.title }}</h2>
+            <img src="{{ flat.image_url }}" />
+        {% endfor %}
+    </ul>
+</body>
+</html>

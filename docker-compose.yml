@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  scrapper:
+    build: ./scrapper
+    depends_on:
+      postgres_database:
+        condition: service_healthy
+    environment:
+      POSTGRES_PASSWORD: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+
+  server:
+    build: ./server
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres_database:
+        condition: service_healthy
+      scrapper:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_PASSWORD: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+
+  postgres_database:
+    image: postgres:alpine
+    user: postgres
+    environment:
+      POSTGRES_PASSWORD: /run/secrets/postgres_password
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    secrets:
+      - postgres_password
+
+secrets:
+  postgres_password:
+    file: ./database/postgres_password.txt
+
+volumes:
+  postgres_data:
